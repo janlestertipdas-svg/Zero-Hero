@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zero Heroes: Predict, Build, Cancel, Check</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+:root{--bg:#f3f1fb;--card:#fff;--ink:#22213a;--mute:#5f5d7a;--line:#dedbef;--c1:#3b6fe0;--c1s:#e6edfc;--c2:#e07b00;--c2s:#fff0d9;--c3:#8446d9;--c3s:#f0e6fc;--c4:#16925a;--c4s:#dcf5e8;--bad:#b3391f;--bads:#fde8e2;--pos:#f7b500;--posb:#8a5f00;--posi:#4a3300;--neg:#e5484d;--negb:#9c1f26;--hero1:#4b3fd1;--hero2:#12a3a0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15142a;--card:#201f3b;--ink:#efeefb;--mute:#aeacd0;--line:#37355f;--c1:#8fb0ff;--c1s:#1f2a55;--c2:#ffb04d;--c2s:#4a3010;--c3:#c39bff;--c3s:#37235c;--c4:#5fdc9c;--c4s:#123d2c;--bad:#ff9a85;--bads:#4d2119;--hero1:#3a2fb0;--hero2:#0c7f7d}}
+:root[data-theme="dark"]{--bg:#15142a;--card:#201f3b;--ink:#efeefb;--mute:#aeacd0;--line:#37355f;--c1:#8fb0ff;--c1s:#1f2a55;--c2:#ffb04d;--c2s:#4a3010;--c3:#c39bff;--c3s:#37235c;--c4:#5fdc9c;--c4s:#123d2c;--bad:#ff9a85;--bads:#4d2119;--hero1:#3a2fb0;--hero2:#0c7f7d}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:500 17px/1.5 Nunito,"Trebuchet MS",system-ui,sans-serif}
+.hero{background:linear-gradient(120deg,var(--hero1),var(--hero2));color:#fff;padding:24px 16px 56px}
+.wrap{max-width:720px;margin:0 auto}
+h1{font-weight:900;font-size:30px;line-height:1.1;margin:0 0 6px}
+.hero p{margin:0;opacity:.92}
+.score{display:inline-block;margin-top:12px;background:rgba(255,255,255,.2);border-radius:999px;padding:4px 14px;font-weight:800;font-size:15px}
+main{max-width:720px;margin:-36px auto 0;padding:0 16px 40px}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 6px 20px rgba(60,40,140,.12)}
+.lbl{font-weight:800;font-size:15px;color:var(--mute);margin:0 0 8px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity}
+.chip{flex:none;scroll-snap-align:start;min-height:44px;padding:0 14px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:800 16px Nunito,system-ui,sans-serif;cursor:pointer}
+.chip.on{background:var(--hero1);border-color:var(--hero1);color:#fff}
+.chip.good{border-color:var(--c4)}.chip.miss{border-color:var(--c2)}
+.chip.good::after{content:" ✓";color:var(--c4)}.chip.on.good::after{color:#fff}
+.chip.miss::after{content:" •";color:var(--c2)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.tab{min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--mute);font:800 14px Nunito,system-ui,sans-serif;cursor:pointer;padding:4px}
+.tab.on{color:#fff;border-color:transparent}
+.tab[data-i="0"].on{background:#3b6fe0}.tab[data-i="1"].on{background:#e07b00}.tab[data-i="2"].on{background:#8446d9}.tab[data-i="3"].on{background:#16925a}
+.panel{border-radius:16px;padding:18px;min-height:230px;background:var(--s);border:2px solid var(--sc)}
+.q{font-weight:900;font-size:28px;line-height:1.2;margin:0 0 6px}
+h2{font-weight:900;font-size:21px;margin:0 0 12px;color:var(--sc)}
+.hint{color:var(--mute);margin:0 0 12px;font-size:16px}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{flex:1;min-width:96px;min-height:52px;border-radius:12px;border:2px solid var(--sc);background:var(--card);color:var(--sc);font:900 18px Nunito,system-ui,sans-serif;cursor:pointer}
+.opt.on{background:var(--sc);color:#fff}
+.boxes{display:flex;flex-wrap:wrap;gap:10px}
+.box{flex:1;min-width:200px;background:var(--card);border-radius:12px;padding:12px}
+.box b{display:block;font-size:14px;color:var(--mute);margin-bottom:8px}
+.ctrs{display:flex;flex-wrap:wrap;gap:6px}
+.c{width:32px;height:32px;border-radius:50%;display:inline-grid;place-items:center;font-weight:900;font-size:18px;border:2.5px solid}
+.c.p{background:var(--pos);border-color:var(--posb);color:var(--posi)}
+.c.n{background:var(--neg);border-color:var(--negb);color:#fff}
+.pair{display:inline-flex;gap:2px;padding:3px;border:2px dashed var(--c3);border-radius:999px;margin:0 6px 6px 0}
+.msg{border-radius:12px;padding:10px 12px;font-size:16px;margin-top:10px;font-weight:700}
+.msg.ok{background:var(--c4s);color:var(--c4)}.msg.no{background:var(--bads);color:var(--bad)}
+.msg.rule{background:var(--card);color:var(--ink);font-weight:600}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.btn{min-height:48px;padding:0 22px;border-radius:12px;border:2px solid var(--hero1);background:transparent;color:var(--hero1);font:900 17px Nunito,system-ui,sans-serif;cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#c9c4ff;border-color:#8f86ff}}
+.btn.go{background:var(--hero1);color:#fff}
+.btn:disabled{opacity:.35;cursor:default}
+.err{color:var(--bad);font-weight:800;font-size:14px;text-align:center}
+.own{display:none}.own.show{display:block}
+.row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.row span:first-child{width:72px;font-weight:800}
+.row input{flex:1;height:32px;accent-color:var(--hero1)}
+.row .v{width:38px;text-align:right;font-weight:900;font-size:20px}
+.c.lg{width:40px;height:40px;font-size:22px}
+button.c{padding:0;font-family:inherit;cursor:grab;touch-action:none;user-select:none}
+.tray{display:flex;gap:14px;align-items:center;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--card);border:2px solid var(--sc)}
+.zone{flex:1;min-width:200px;min-height:104px;border:2.5px dashed var(--sc);border-radius:14px;padding:10px;background:var(--card);transition:background .15s}
+.zone b{display:block;font-size:14px;color:var(--mute)}
+.zone .cnt{display:block;font-weight:900;color:var(--sc);margin:2px 0 8px}
+.zone.full{border-style:solid}
+.hot{background:var(--s)!important;box-shadow:0 0 0 3px var(--sc)}
+.c.sel{box-shadow:0 0 0 4px var(--c3)}
+.c.out{animation:pop .3s forwards}
+@keyframes pop{to{transform:scale(0);opacity:0}}
+.ghost{position:fixed;z-index:99;pointer-events:none;transform:translate(-50%,-50%) scale(1.2);margin:0}
+.status{font-weight:800;min-height:26px;margin-top:10px;color:var(--sc)}
+@media (prefers-reduced-motion:reduce){.c.out{animation:none;opacity:0}}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+<h1>Zero Heroes</h1>
+<p>Predict the sign. Build with counters. Cancel zero pairs. Check your answer.</p>
+<span class="score" id="score">Predictions right: 0 of 0</span>
+</div></header>
+<main>
+<section class="card" aria-label="Choose a problem">
+<p class="lbl">Pick a problem</p>
+<div class="chips" id="chips"></div>
+<div class="own" id="own">
+<div class="row"><span>First</span><input id="ra" type="range" min="-10" max="10" value="5" aria-label="First number"><span class="v" id="rav"></span></div>
+<div class="row"><span>Second</span><input id="rb" type="range" min="-10" max="10" value="-3" aria-label="Second number"><span class="v" id="rbv"></span></div>
+</div>
+</section>
+<section class="card" aria-label="Walkthrough">
+<div class="tabs" id="tabs"></div>
+<div class="panel" id="panel" aria-live="polite"></div>
+<div class="nav"><button class="btn" id="back">Back</button><span class="err" id="err"></span><button class="btn go" id="next">Next</button></div>
+</section>
+</main>
+<script>
+const P=[[-6,4],[3,-5],[-4,-3],[5,-5],[7,-2],[-8,3],[2,6],[-3,-6],[-7,7],[6,-9],[9,-4],[-2,8],[-1,-9],[4,-10]];
+const OWN=P.length;
+const NAMES=["Predict","Build","Cancel","Check"];
+const COL=[["#3b6fe0","var(--c1s)"],["#e07b00","var(--c2s)"],["#8446d9","var(--c3s)"],["#16925a","var(--c4s)"]];
+let pi=0,st=0,pred=null,own=[5,-3],res={},bz=[0,0],cx=0,sel=null,msg="",drag=null,busy=false;
+const reset=()=>{bz=[0,0];cx=0;sel=null;msg="";};
+const buildDone=()=>{const[a,b]=cur();return bz[0]===Math.abs(a)&&bz[1]===Math.abs(b);};
+const cancelDone=()=>cx>=stats().pairs;
+const $=id=>document.getElementById(id);
+const fmt=n=>(n<0?"\u2212":"")+Math.abs(n);
+const cur=()=>pi===OWN?own:P[pi];
+const expr=(p)=>{p=p||cur();return fmt(p[0])+" + "+(p[1]<0?"("+fmt(p[1])+")":fmt(p[1]));};
+const sname=n=>n>0?"Positive":n<0?"Negative":"Zero";
+function stats(){const[a,b]=cur();const pos=Math.max(a,0)+Math.max(b,0),neg=Math.max(-a,0)+Math.max(-b,0);return{a,b,pos,neg,pairs:Math.min(pos,neg),sum:a+b};}
+const ctr=s=>`<span class="c ${s>0?"p":"n"}">${s>0?"+":"\u2212"}</span>`;
+const row=(n,s)=>`<div class="ctrs">${Array(n).fill(ctr(s)).join("")}</div>`;
+const box=(l,i)=>`<div class="box"><b>${l}</b>${i}</div>`;
+const word=(n,s)=>`${Math.abs(n)} ${n<0?"red (\u22121 each)":"yellow (+1 each)"}`;
+function render(){
+  const s=stats();
+  $("chips").innerHTML=P.map((p,i)=>`<button class="chip ${i===pi?"on":""} ${res[i]===true?"good":res[i]===false?"miss":""}" data-p="${i}">${expr(p)}</button>`).join("")+`<button class="chip ${pi===OWN?"on":""}" data-p="${OWN}">Your own</button>`;
+  $("own").classList.toggle("show",pi===OWN);
+  $("rav").textContent=fmt(own[0]);$("rbv").textContent=fmt(own[1]);
+  const tried=Object.keys(res).length,right=Object.values(res).filter(Boolean).length;
+  $("score").textContent=`Predictions right: ${right} of ${tried}`;
+  $("tabs").innerHTML=NAMES.map((n,i)=>`<button class="tab ${i===st?"on":""}" data-i="${i}">${i+1}. ${n}</button>`).join("");
+  const pan=$("panel");pan.style.setProperty("--sc",COL[st][0]);pan.style.setProperty("--s",COL[st][1]);
+  let h="";
+  if(st===0){
+    h=`<h2>Predict the sign</h2><p class="q">${expr()} = ?</p><p class="hint">Before you calculate, ask: which group is bigger, and what sign does it have?</p>
+    <div class="opts">${["Positive","Negative","Zero"].map(v=>`<button class="opt ${pred===v?"on":""}" data-g="${v}">${v}</button>`).join("")}</div>
+    <p class="hint" style="margin-top:12px">${pred?`Your prediction: <b>${pred}</b>. Write one line on why.`:"Circle one on your mat."}</p>`;
+  }else if(st===1){
+    const zs=[0,1].map(k=>{const v=cur()[k],t=Math.abs(v),n=bz[k];
+      const inner=t===0?`<span class="hint">0 means no counters.</span>`:`<div class="ctrs">${Array(n).fill(0).map(()=>`<button class="c lg ${v>0?"p":"n"}" data-drag="placed" data-zone="${k}" aria-label="Take this counter back">${v>0?"+":"\u2212"}</button>`).join("")}</div>`;
+      return `<div class="zone ${n===t?"full":""}" data-drop="${k}"><b>${k?"Second":"First"} number: ${fmt(v)}</b><span class="cnt">${n} of ${t} ${v<0?"red":"yellow"}</span>${inner}</div>`;});
+    h=`<h2>Build with counters</h2><p class="q">${expr()}</p><p class="hint">Drag counters from the trays into each box, or tap a tray counter. Tap a placed counter to take it back.</p><div class="boxes">${zs.join("")}</div>
+    <div class="tray"><button class="c lg p" data-drag="tok" data-sign="1" aria-label="Yellow counter, plus one">+</button><button class="c lg n" data-drag="tok" data-sign="-1" aria-label="Red counter, minus one">\u2212</button><span class="hint" style="margin:0">Yellow is +1. Red is \u22121.</span></div>
+    <div class="status" id="status">${buildDone()?"Built! Press Next to cancel the zero pairs.":msg}</div>`;
+  }else if(st===2){
+    const py=s.pos-cx,rn=s.neg-cx,done=cx>=s.pairs;
+    const cc=(n,sg)=>n>0?`<div class="ctrs">${Array(n).fill(0).map(()=>`<button class="c lg ${sg>0?"p":"n"} ${sel===sg?"sel":""}" data-drag="cc" data-cc data-sign="${sg}" aria-label="${sg>0?"Yellow":"Red"} counter">${sg>0?"+":"\u2212"}</button>`).join("")}</div>`:`<span class="hint">None left.</span>`;
+    h=`<h2>Cancel the zero pairs</h2><p class="hint">Drag a yellow counter onto a red one to remove a zero pair. You can also tap one, then the other.</p>
+    <div class="boxes">${box("Yellow counters",cc(py,1))}${box("Red counters",cc(rn,-1))}</div>
+    <div class="status" id="status">${done?(s.pairs?"All zero pairs removed! ":"No zero pairs here. ")+(s.sum===0?"Nothing is left.":`${Math.abs(s.sum)} ${s.sum>0?"yellow":"red"} left. Press Next.`):`Zero pairs removed: ${cx} of ${s.pairs}. ${msg}`}</div>
+    ${done?"":`<button class="btn" style="min-height:40px;margin-top:8px" data-act="auto">Remove the rest for me</button>`}`;
+  }else{
+    const ans=sname(s.sum),ok=pred===ans;
+    const rule=s.pairs===0?"Same signs: nothing cancels. Add the counters and keep the sign.":s.sum===0?"Opposites: every counter has a partner, so everything cancels to 0.":"Different signs: cancel the zero pairs. The bigger group wins and keeps its sign.";
+    h=`<h2>Check your answer</h2><p class="q">${expr()} = ${fmt(s.sum)}</p>
+    <div class="msg ${ok?"ok":"no"}">${ok?`Your prediction (${pred}) matched the answer. Great work, hero!`:`You predicted ${pred}, but the answer is ${ans}. Look again at which group was bigger.`}</div>
+    <div class="msg rule">${rule}</div>`;
+    if(pi!==OWN&&res[pi]===undefined)res[pi]=ok;
+  }
+  pan.innerHTML=h;
+  $("next").textContent=st===3?"Next problem":"Next";
+  $("back").disabled=st===0;
+}
+function goTo(n){const e=$("err");
+  if(n>0&&!pred){e.textContent="Choose a prediction first";return;}
+  if(n>1&&!buildDone()){e.textContent="Build both numbers first";return;}
+  if(n>2&&!cancelDone()){e.textContent="Cancel all the zero pairs first";return;}
+  e.textContent="";msg="";st=n;render();}
+function say(t){msg=t;render();}
+function needZone(sg){for(let k=0;k<2;k++){const v=cur()[k];if(Math.sign(v)===sg&&bz[k]<Math.abs(v))return k;}return -1;}
+function addTo(k,sg){const v=cur()[k];
+  if(v===0)return say("0 needs no counters.");
+  if(Math.sign(v)!==sg)return say(`${fmt(v)} needs ${v<0?"red":"yellow"} counters. Yellow is +1 and red is \u22121.`);
+  if(bz[k]>=Math.abs(v))return say("That is enough for this number.");
+  bz[k]++;say("");}
+function pair(a,b){if(!a||!b||busy)return;busy=true;a.classList.add("out");b.classList.add("out");
+  setTimeout(()=>{busy=false;cx++;sel=null;msg="";render();},300);}
+function tap(d){
+  if(d.kind==="tok"){const k=needZone(d.sign);if(k<0)say("You already have all the "+(d.sign>0?"yellow":"red")+" counters you need.");else addTo(k,d.sign);}
+  else if(d.kind==="placed"){bz[+d.zone]--;say("");}
+  else if(d.kind==="cc"){
+    if(sel!==null&&sel!==d.sign){pair(d.el,[...document.querySelectorAll("[data-cc]")].find(x=>+x.dataset.sign===sel));}
+    else{sel=sel===d.sign?null:d.sign;render();}
+  }
+}
+const under=(x,y)=>document.elementFromPoint(x,y);
+document.addEventListener("pointerdown",e=>{
+  const el=e.target.closest("[data-drag]");if(!el||busy)return;
+  drag={el,kind:el.dataset.drag,sign:+el.dataset.sign||0,zone:el.dataset.zone,x:e.clientX,y:e.clientY,ghost:null,hot:null};
+  e.preventDefault();
+});
+document.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  if(!drag.ghost){
+    if(drag.kind==="placed"||Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8)return;
+    const g=drag.el.cloneNode(true);g.className=drag.el.className+" ghost";g.removeAttribute("data-drag");
+    document.body.appendChild(g);drag.ghost=g;drag.el.style.opacity=".4";
+  }
+  drag.ghost.style.left=e.clientX+"px";drag.ghost.style.top=e.clientY+"px";
+  const t=under(e.clientX,e.clientY),h=t&&t.closest("[data-drop],[data-cc]");
+  if(drag.hot&&drag.hot!==h)drag.hot.classList.remove("hot");
+  if(h&&h!==drag.el){h.classList.add("hot");drag.hot=h;}else drag.hot=null;
+});
+function endDrag(e,cancel){
+  if(!drag)return;const d=drag;drag=null;
+  if(d.ghost)d.ghost.remove();
+  if(d.hot)d.hot.classList.remove("hot");
+  d.el.style.opacity="";
+  if(cancel)return;
+  if(!d.ghost){tap(d);return;}
+  const t=under(e.clientX,e.clientY),h=t&&t.closest("[data-drop],[data-cc]");
+  if(!h)return;
+  if(d.kind==="tok"&&h.dataset.drop!==undefined)addTo(+h.dataset.drop,d.sign);
+  else if(d.kind==="cc"&&h.dataset.cc!==undefined&&h!==d.el){
+    if(+h.dataset.sign!==d.sign)pair(d.el,h);else say("Same color. Pair a yellow with a red.");
+  }
+}
+document.addEventListener("pointerup",e=>endDrag(e,false));
+document.addEventListener("pointercancel",e=>endDrag(e,true));
+function pick(i){pi=i;st=0;pred=null;reset();$("err").textContent="";render();}
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.drag){if(e.detail===0)tap({el:t,kind:t.dataset.drag,sign:+t.dataset.sign||0,zone:t.dataset.zone});return;}
+  if(t.dataset.p!==undefined)pick(+t.dataset.p);
+  else if(t.dataset.i!==undefined)goTo(+t.dataset.i);
+  else if(t.dataset.g){pred=t.dataset.g;$("err").textContent="";render();}
+  else if(t.dataset.act==="auto"){cx=stats().pairs;msg="";render();}
+});
+$("next").onclick=()=>{if(st===3)pick((pi+1)%(P.length+1));else goTo(st+1);};
+$("back").onclick=()=>{$("err").textContent="";if(st>0){st--;render();}};
+["ra","rb"].forEach((id,k)=>$(id).oninput=e=>{own[k]=+e.target.value;st=0;pred=null;reset();$("err").textContent="";render();});
+render();
+</script>
+</body>
+</html>
